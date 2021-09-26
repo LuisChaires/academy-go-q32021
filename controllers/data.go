@@ -3,7 +3,6 @@ package controllers
 import (
 	"html/template"
 	"net/http"
-	"os"
 
 	"deliverables/common/constants"
 	"deliverables/usecases"
@@ -11,12 +10,12 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// Home - Description
+// Home - shows an hellow greet
 func Home(w http.ResponseWriter, r *http.Request) {
 	showData(w, constants.PageData{Message: "Hello World", Status: "Success"})
 }
 
-//mover a useCase y Service
+//GetById - Function to get pokemon by ID
 func GetById(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
@@ -25,14 +24,10 @@ func GetById(w http.ResponseWriter, r *http.Request) {
 	showData(w, data)
 }
 
+//GetAll - Function to get all stored pokemons
 func GetAll(w http.ResponseWriter, r *http.Request) {
 	data, _ := usecases.GetAllPokemons()
 	showData(w, data)
-}
-
-func ReadCvsFile() (*os.File, error) {
-	file, err := os.Open(constants.CvsFile)
-	return file, err
 }
 
 func showData(w http.ResponseWriter, data constants.PageData) {
