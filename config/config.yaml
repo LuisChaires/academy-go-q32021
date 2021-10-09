@@ -1,0 +1,7 @@
+files:
+  pokemonCsv: files/commas_file.csv
+  htmlTemplate: layouts/template.html
+
+externalUrl:
+  getPokemonById: https://pokeapi.co/api/v2/pokemon/
+  timeOut: 5s
