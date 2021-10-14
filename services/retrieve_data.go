@@ -7,6 +7,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"deliverables/common/constants"
@@ -157,4 +158,70 @@ func (s service) GetPokemonFromAPI(id string) (entities.Pokemon, error) {
 	}
 
 	return pokemon, nil
+}
+
+func (s service) GetConcurrently(pokemons map[int]entities.Pokemon, itemType string, items, ipw int) (map[int]entities.Pokemon, error) {
+	var rPokemon = map[int]entities.Pokemon{}
+	jobs := make(chan entities.Pokemon, 100)
+	results := make(chan entities.Pokemon, items)
+	var routines, mod int
+	var wg sync.WaitGroup
+
+	if ipw < items {
+		routines = items / ipw
+		mod = items % ipw
+		if mod > 0 {
+			routines++
+		}
+	} else {
+		routines = 1
+	}
+
+	for r := 0; r < routines; r++ {
+		wg.Add(1)
+		go worker(ipw, &items, jobs, results, &wg)
+	}
+
+	for _, sPokemon := range pokemons {
+		intID, err := strconv.Atoi(sPokemon.ID)
+		if err != nil {
+			return map[int]entities.Pokemon{}, err
+		}
+
+		if strings.EqualFold(itemType, "even") && intID%2 == 0 {
+			jobs <- sPokemon
+		} else if strings.EqualFold(itemType, "odd") && intID%2 != 0 {
+			jobs <- sPokemon
+		}
+	}
+
+	close(jobs)
+
+	wg.Wait()
+
+	close(results)
+
+	var i = 0
+	for result := range results {
+		rPokemon[i] = result
+		i++
+	}
+
+	return rPokemon, nil
+
+}
+
+func worker(itemsPW int, items *int, jobs <-chan entities.Pokemon, results chan<- entities.Pokemon, wg *sync.WaitGroup) {
+	time.Sleep(time.Millisecond * 50)
+	for k := 0; k < itemsPW; k++ {
+		if *items > 0 {
+			*items--
+			if len(jobs) > 0 {
+				value := <-jobs
+				results <- value
+			}
+		}
+	}
+
+	wg.Done()
 }

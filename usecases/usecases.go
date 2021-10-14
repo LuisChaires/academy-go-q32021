@@ -2,6 +2,7 @@ package usecases
 
 import (
 	"deliverables/entities"
+	"errors"
 )
 
 type services interface {
@@ -9,6 +10,7 @@ type services interface {
 	GetPokemonById(id string) (map[int]entities.Pokemon, error)
 	GetPokemonFromAPI(id string) (entities.Pokemon, error)
 	StorePokemon(pokemon entities.Pokemon) error
+	GetConcurrently(pokemons map[int]entities.Pokemon, itemType string, items, ipw int) (map[int]entities.Pokemon, error)
 }
 
 func New(s services) usecase {
@@ -43,4 +45,18 @@ func (u usecase) GetPokemonFromAPI(id string) (map[int]entities.Pokemon, error) 
 	pokemonMap[0] = pokemon
 	return pokemonMap, nil
 
+}
+
+func (u usecase) GetConcurrently(itemType string, items, ipw int) (map[int]entities.Pokemon, error) {
+	var pokemons, err = u.service.GetAllPokemons()
+
+	if err != nil {
+		return map[int]entities.Pokemon{}, err
+	}
+
+	if len(pokemons) <= 0 {
+		return map[int]entities.Pokemon{}, errors.New("no data found")
+	}
+
+	return u.service.GetConcurrently(pokemons, itemType, items, ipw)
 }

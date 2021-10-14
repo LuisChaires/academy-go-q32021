@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"deliverables/common/constants"
 	"deliverables/entities"
@@ -15,6 +17,7 @@ type usecase interface {
 	GetAllPokemons() (map[int]entities.Pokemon, error)
 	GetPokemonById(id string) (map[int]entities.Pokemon, error)
 	GetPokemonFromAPI(id string) (map[int]entities.Pokemon, error)
+	GetConcurrently(itemType string, items, ipw int) (map[int]entities.Pokemon, error)
 }
 
 type controller struct {
@@ -59,9 +62,41 @@ func (c controller) GetFromAPI(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 
+	if id == "" {
+		showData(w, constants.PageData{Message: "Bad Request", Status: http.StatusBadRequest})
+		return
+	}
+
 	data, err := c.usecase.GetPokemonFromAPI(id)
 	if err != nil {
-		showData(w, constants.PageData{Message: err.Error(), Status: http.StatusInternalServerError})
+		showData(w, constants.PageData{Message: err.Error(), Status: http.StatusNotFound})
+	} else {
+		showData(w, constants.PageData{Data: data, Status: http.StatusOK})
+	}
+}
+
+func (c controller) Concurrrency(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	itemType := vars["type"]
+	items := vars["items"]
+	ipw := vars["ipw"]
+
+	if itemType == "" || items == "" || ipw == "" {
+		showData(w, constants.PageData{Message: "Bad Request", Status: http.StatusBadRequest})
+		return
+	}
+
+	itemsQ, errQ := strconv.Atoi(items)
+	itemsPW, errPW := strconv.Atoi(ipw)
+
+	if errQ != nil || errPW != nil || (!strings.EqualFold(itemType, "even") && !strings.EqualFold(itemType, "odd")) {
+		showData(w, constants.PageData{Message: "Invalid Params", Status: http.StatusBadRequest})
+		return
+	}
+
+	data, err := c.usecase.GetConcurrently(itemType, itemsQ, itemsPW)
+	if err != nil {
+		showData(w, constants.PageData{Message: err.Error(), Status: http.StatusNotFound})
 	} else {
 		showData(w, constants.PageData{Data: data, Status: http.StatusOK})
 	}

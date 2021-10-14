@@ -12,6 +12,7 @@ type controller interface {
 	GetById(w http.ResponseWriter, r *http.Request)
 	GetAll(w http.ResponseWriter, r *http.Request)
 	GetFromAPI(w http.ResponseWriter, r *http.Request)
+	Concurrrency(w http.ResponseWriter, r *http.Request)
 }
 
 //New - Function to set the routes
@@ -22,6 +23,8 @@ func New(c controller) {
 	router.HandleFunc("/all", c.GetAll)
 	router.HandleFunc("/pokemon/{id}", c.GetById)
 	router.HandleFunc("/pokemon/api/{id}", c.GetFromAPI)
+
+	router.HandleFunc("/concurrency/{type}/{items}/{ipw}", c.Concurrrency)
 
 	log.Fatal(http.ListenAndServe(":10000", router))
 }
