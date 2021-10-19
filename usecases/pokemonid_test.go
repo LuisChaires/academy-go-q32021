@@ -1,9 +1,10 @@
 package usecases
 
 import (
-	"deliverables/entities"
 	"errors"
 	"testing"
+
+	"deliverables/entities"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -21,6 +22,13 @@ var pokemons = map[int]entities.Pokemon{
 	2: {
 		ID:   "7",
 		Name: "squirtle",
+	},
+}
+
+var pokemon = map[int]entities.Pokemon{
+	0: {
+		ID:   "1",
+		Name: "bulbasaur",
 	},
 }
 
@@ -53,7 +61,6 @@ func (m PokemonMock) GetConcurrently(pokemons map[int]entities.Pokemon, itemType
 	return args.Get(0).(map[int]entities.Pokemon), args.Error(1)
 }
 
-//En revision
 func TestPokemonId(t *testing.T) {
 	testCases := []struct {
 		name           string
@@ -66,7 +73,7 @@ func TestPokemonId(t *testing.T) {
 		{
 			"Find result",
 			1,
-			pokemons,
+			pokemon,
 			false,
 			nil,
 			"1",

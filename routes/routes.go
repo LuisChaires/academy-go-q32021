@@ -24,7 +24,7 @@ func New(c controller) {
 	router.HandleFunc("/pokemon/{id}", c.GetById)
 	router.HandleFunc("/pokemon/api/{id}", c.GetFromAPI)
 
-	router.HandleFunc("/concurrency/{type}/{items}/{ipw}", c.Concurrrency)
+	router.HandleFunc("/concurrency", c.Concurrrency)
 
 	log.Fatal(http.ListenAndServe(":10000", router))
 }

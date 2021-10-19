@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -24,11 +25,12 @@ type controller struct {
 	usecase usecase
 }
 
+//New - function to get new controller object
 func New(u usecase) controller {
 	return controller{u}
 }
 
-// Home - shows an hellow greet
+// Home - shows an hello greet
 func (c controller) Home(w http.ResponseWriter, r *http.Request) {
 	showData(w, constants.PageData{Message: "Hello World", Status: http.StatusOK})
 }
@@ -75,14 +77,14 @@ func (c controller) GetFromAPI(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+//Concurrrency - Function to get data concurrently from CSV
 func (c controller) Concurrrency(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	itemType := vars["type"]
-	items := vars["items"]
-	ipw := vars["ipw"]
+	itemType := r.URL.Query().Get("type")
+	items := r.URL.Query().Get("items")
+	ipw := r.URL.Query().Get("items_per_worker")
 
 	if itemType == "" || items == "" || ipw == "" {
-		showData(w, constants.PageData{Message: "Bad Request", Status: http.StatusBadRequest})
+		showData(w, constants.PageData{Message: "Missing Params", Status: http.StatusBadRequest})
 		return
 	}
 
@@ -103,6 +105,10 @@ func (c controller) Concurrrency(w http.ResponseWriter, r *http.Request) {
 }
 
 func showData(w http.ResponseWriter, data constants.PageData) {
-	jsonStr, _ := json.MarshalIndent(data, "", " ")
-	fmt.Fprintf(w, string(jsonStr))
+	jsonStr, err := json.MarshalIndent(data, "", " ")
+	if err != nil {
+		log.Fatal(err)
+	} else {
+		fmt.Fprintf(w, string(jsonStr))
+	}
 }

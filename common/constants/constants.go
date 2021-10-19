@@ -3,8 +3,8 @@ package constants
 import "deliverables/entities"
 
 const (
-	CvsFile    = "files/commas_file.csv"
-	PokemonApi = "https://pokeapi.co/api/v2/pokemon/{id}"
+	CvsFile            = "files/commas_file.csv"
+	PokemonApiEndPoint = "pokemon/{id}"
 )
 
 //PageData - Struct to send data to the view

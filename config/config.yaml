@@ -3,5 +3,5 @@ files:
   htmlTemplate: layouts/template.html
 
 externalUrl:
-  getPokemonById: https://pokeapi.co/api/v2/pokemon/
+  getPokemonById: https://pokeapi.co/api/v2/
   timeOut: 5s

@@ -21,6 +21,7 @@ type service struct {
 	client *resty.Client
 }
 
+//New - function to set the client into a service object
 func New(host string, timeout time.Duration) (service, error) {
 	client := resty.New().
 		SetHostURL(host).
@@ -38,13 +39,12 @@ func New(host string, timeout time.Duration) (service, error) {
 }
 
 func readCvsFile() (*os.File, error) {
-	file, err := os.Open(constants.CvsFile)
-	return file, err
+	return os.Open(constants.CvsFile)
 }
 
 //GetAllPokemons - This function returns all the pokemons
 func (s service) GetAllPokemons() (map[int]entities.Pokemon, error) {
-	var mapPokemon = make(map[int]entities.Pokemon)
+	mapPokemon := make(map[int]entities.Pokemon)
 	file, err := readCvsFile()
 	if err != nil {
 		return mapPokemon, err
@@ -76,18 +76,18 @@ func (s service) GetAllPokemons() (map[int]entities.Pokemon, error) {
 
 //GetPokemonById - This function returns one pokemon by ID
 func (s service) GetPokemonById(id string) (map[int]entities.Pokemon, error) {
-	var mapPokemon = make(map[int]entities.Pokemon)
+	mapPokemon := make(map[int]entities.Pokemon)
 
 	file, err := readCvsFile()
 	if err != nil {
-		return mapPokemon, err
+		return nil, err
 	}
 
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
 	if scanErr := scanner.Err(); scanErr != nil {
-		return mapPokemon, scanErr
+		return nil, scanErr
 	}
 
 	for i := 0; scanner.Scan(); i++ {
@@ -104,16 +104,17 @@ func (s service) GetPokemonById(id string) (map[int]entities.Pokemon, error) {
 	}
 
 	if len(mapPokemon) == 0 {
-		return mapPokemon, errors.New("no data")
+		return nil, errors.New("no data")
 	}
 
 	if err != nil {
 		file.Close()
-		return mapPokemon, err
+		return nil, err
 	}
 	return mapPokemon, nil
 }
 
+//StorePokemon - Function to store a pokemon entitie into an CSV file
 func (s service) StorePokemon(pokemon entities.Pokemon) error {
 	file, err := os.OpenFile(constants.CvsFile, os.O_APPEND|os.O_WRONLY, 0600)
 	if err != nil {
@@ -140,7 +141,7 @@ func (s service) GetPokemonFromAPI(id string) (entities.Pokemon, error) {
 	resp, err := s.client.R().
 		SetPathParams(map[string]string{"id": id}).
 		SetHeader("Accept", "application/json").
-		Get(constants.PokemonApi)
+		Get(constants.PokemonApiEndPoint)
 
 	if err != nil {
 		return entities.Pokemon{}, err
@@ -160,6 +161,7 @@ func (s service) GetPokemonFromAPI(id string) (entities.Pokemon, error) {
 	return pokemon, nil
 }
 
+//GetConcurrently - Function to get data concurrently from CSV
 func (s service) GetConcurrently(pokemons map[int]entities.Pokemon, itemType string, items, ipw int) (map[int]entities.Pokemon, error) {
 	var rPokemon = map[int]entities.Pokemon{}
 	jobs := make(chan entities.Pokemon, 100)
